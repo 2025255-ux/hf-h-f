@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>究極負荷テスト</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background: #1a1a1a; color: #00ff00; text-align: center; padding: 50px; }
+        .warning { color: #ff4757; font-weight: bold; border: 2px solid #ff4757; padding: 20px; display: inline-block; }
+        button { background: #ff4757; color: white; padding: 20px 40px; font-size: 20px; border: none; cursor: pointer; margin-top: 20px; }
+        button:hover { background: #ff6b81; }
+    </style>
+</head>
+<body>
+
+    <div class="warning">
+        【警告】これを実行するとPCがハングアップする可能性があります。<br>
+        重要なデータはすべて保存してから試してください。
+    </div>
+    <br>
+    <button onclick="ultimateLoad()">負荷開始（Overload）</button>
+
+    <script>
+        function ultimateLoad() {
+            console.log("実験開始...");
+
+            // 1. メモリ破壊（巨大なTypedArrayの連続確保）
+            // 文字列よりも効率的にRAMを占有します
+            const memoryLeak = [];
+            
+            // 2. 通信連打（並列実行）
+            // awaitを使わずにループさせることで、処理を待たずに次々とリクエストを投げます
+            const spamNetwork = () => {
+                for(let i = 0; i < 1000; i++) {
+                    fetch(window.location.href + '?' + Math.random())
+                        .catch(() => {}); // エラーを無視して投げ続ける
+                }
+            };
+
+            // メインループ
+            setInterval(() => {
+                // メモリをガツンと増やす (1回につき約100MBのバッファ)
+                try {
+                    memoryLeak.push(new Float64Array(12500000)); 
+                } catch(e) {
+                    console.log("メモリ上限に達しました");
+                }
+
+                // 通信を1000件ずつ並列で投げる
+                spamNetwork();
+
+                // 画面上にステータスを出そうとすると逆に重くなるので、
+                // 内部処理を最優先させます
+            }, 10); 
+        }
+    </script>
+</body>
+</html>
